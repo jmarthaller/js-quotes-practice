@@ -115,3 +115,135 @@ function makePostLikeRequest(data) {
 }
 
 
+
+//////////////////////////////// REVIEW CODE */
+
+
+
+getAllQuotes()
+
+//************************** Grab Elements From DOM  */
+
+const quoteList = document.querySelector('#quote-list')
+const newQuoteForm = document.querySelector('#new-quote-form')
+
+//************************** Add Event Listeners  */
+
+newQuoteForm.addEventListener('submit', gatherFormData)
+quoteList.addEventListener('click', handleClickEvent)
+
+//************************** Network Request to DB */
+
+function getAllQuotes() {
+    fetch('http://localhost:3000/quotes?_embed=likes')
+        .then(response => response.json())
+        .then(data => addQuotesToDom(data))
+}
+
+
+function createQuote(quoteObj) {
+    fetch('http://localhost:3000/quotes', {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(quoteObj)
+    })
+        .then(res => res.json())
+        .then(addSingleQuoteToDom)
+}
+
+
+function deleteQuote(quoteId) {
+    fetch(`http://localhost:3000/quotes/${quoteId}`, {
+        method: "DELETE",
+        headers: {'Content-Type': 'application/json'},
+    })
+}
+
+
+function createLike(quoteId) {
+    fetch('http://localhost:3000/likes', {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(quoteId)
+    })
+}
+
+//************************** DOM manipulation & logic */
+
+function addQuotesToDom(allQuotes) {
+    allQuotes.forEach(quote => {
+        quoteList.innerHTML += `
+        <li class='quote-card'>
+            <blockquote class="blockquote" data-id=${quote.id}>
+            <p class="mb-0">${quote.quote}</p>
+            <footer class="blockquote-footer">${quote.author}</footer>
+            <br>
+            <button class='btn-success'>Likes: <span class='likes-span'>${quote.likes.length}</span></button>
+            <button data-id=${quote.id} class='btn-danger'>Delete</button>
+            </blockquote>
+        </li>
+    `
+    })  
+}
+
+
+function addSingleQuoteToDom(singleQuote) {
+        quoteList.innerHTML += `
+        <li class='quote-card'>
+            <blockquote class="blockquote" data-id=${singleQuote.id}>
+            <p class="mb-0">${singleQuote.quote}</p>
+            <footer class="blockquote-footer">${singleQuote.author}</footer>
+            <br>
+            <button class='btn-success'>Likes: <span class='likes-span'>${0}</span></button>
+            <button data-id=${singleQuote.id} class='btn-danger'>Delete</button>
+            </blockquote>
+        </li>
+    `
+}
+
+
+function gatherFormData(e){
+    e.preventDefault()
+
+    const quote = e.target.quote.value
+    const author = e.target.author.value
+
+    const quoteObj = {
+        quote: quote,
+        author: author
+    }
+
+    createQuote(quoteObj)
+    e.target.reset()
+}
+
+
+function handleClickEvent(e) {
+    if (e.target.className === 'btn-danger') {
+        getIdToDeleteQuote(e)
+    } else if (e.target.className === 'btn-success') {
+        getIdToLikeQuote(e)
+    }
+}
+
+
+function getIdToDeleteQuote(e) {
+    const quoteId = e.target.parentElement.dataset.id
+    e.target.parentElement.parentElement.remove()
+    deleteQuote(quoteId)
+}
+
+
+function getIdToLikeQuote(e) {
+    const quoteId = parseInt(e.target.parentElement.dataset.id)
+    likeObj = { quoteId: quoteId }
+    increaseLikes(e)
+    createLike(likeObj)
+}
+
+
+function increaseLikes(e) {
+    let currentLikes = parseInt(e.target.querySelector('.likes-span').innerText)
+    currentLikes++
+    e.target.querySelector('.likes-span').innerText = currentLikes
+}

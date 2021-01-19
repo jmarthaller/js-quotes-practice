@@ -1,9 +1,5 @@
-
-
 const quoteList = document.querySelector('#quote-list')
 const newQuoteForm = document.querySelector('#new-quote-form')
-const buttonDanger = document.querySelector('.btn-danger')
-
 
 
 fetch('http://localhost:3000/quotes?_embed=likes')
@@ -13,7 +9,6 @@ fetch('http://localhost:3000/quotes?_embed=likes')
 
 function renderQuotes(data) {
     data.forEach(quote => {
-       //debugger
         quoteList.innerHTML += `
         <li class='quote-card' data-id=${quote.id}>
             <blockquote class="blockquote">
@@ -88,9 +83,9 @@ quoteList.addEventListener('click', function(e) {
         let parsedQuoteId = parseInt(e.target.closest('li').dataset.id)
         
         let quoteObj = {
-            quoteId: parsedQuoteId
+            quoteId: parsedQuoteId,
+            createdAt: Date.now()
         }
-
         makePostLikeRequest(quoteObj)
     }
 })
@@ -108,10 +103,7 @@ function makeDeleteRequest(quote) {
 }
 
 
-
-
 function makePostLikeRequest(data) {
-
     fetch('http://localhost:3000/likes', {
         method: 'POST', 
         headers: {
@@ -120,7 +112,6 @@ function makePostLikeRequest(data) {
         body: JSON.stringify(data),
     })
     .then(response => response.json())
-
 }
 
 
